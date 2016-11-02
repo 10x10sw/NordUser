@@ -36,12 +36,12 @@ import argparse
 from xml.etree import ElementTree
 
 parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards.')
-parser.add_argument('-v', '--verbose', action='store_const', const=1, default=0, help='print the sample name or organ category below the program name')
+parser.add_argument('-v', '--verbose', action='store_const', const=1, default=0, help='print the sample name or organ model below the program name')
 parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
 parser.add_argument('inputFile', type=str, help='the input Nord Electro 4 Program HTML file')
 parser.add_argument('-o', '--outputFile', type=str, help='the output HTML file')
 parser.add_argument('-t', '--title', type=str, help='an optional title to print above each bank')
-parser.add_argument('--eurostile', action='store_const', const=1, default=0, help='use Eurostile Extd font for titles')
+parser.add_argument('--eurostile', action='store_const', const=1, default=0, help='use Eurostile Extd font for titles and banks')
 args = parser.parse_args()
 # print args
 
