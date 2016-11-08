@@ -25,46 +25,25 @@ The Nord software will create several files. This script uses the "Program" file
 ## Help
 Here is the output of `python make_nord_refcard.py -h` :
 ```
-usage: make_nord_refcard.py [-h] [-v] [-r] [-o OUTPUTFILE] [-t TITLE]
+usage: make_nord_refcard.py [-h] [-o OUTPUTFILE] [-r] [-t TITLE] [-v]
                             [--eurostile]
                             inputFile
 
 Creates a Program Reference Card for Nord Keyboards.
 
 positional arguments:
-  inputFile             the input Nord Electro 4 Program HTML file
+  inputFile                   the input Nord Sound Manager Program HTML file
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         print the sample name or organ model below the
-                        program name
-  -r, --reverse         print the program pages in reverse order (from high to
-                        low)
+  -h, --help                  show this help message and exit
   -o OUTPUTFILE, --outputFile OUTPUTFILE
-                        the output HTML file
-  -t TITLE, --title TITLE
-                        an optional title to print above each bank
-  --eurostile           use Eurostile Extd font for titles and banks
-```
+                              the output HTML file
+  -r, --reverse               print the program pages in reverse order (from high to low)
+  -t TITLE, --title TITLE     an optional title to print above each bank
+  -v, --verbose               print the sample name or organ model below the program name
+  --eurostile                 use Eurostile Extd font for titles and banks
+  ```
 
-## Examples
-
-To use the input file `ne4d_program.html` and dump the programs,
-as well as the detailed sample and organ model,
-starting with page 32 at the top and page 1 at the bottom,
-with the title "Electro 4D,"
-into the output file `refcard.html` : 
-```
-python make_nord_refcard ne4d_program.html -v -r -t "Electro 4D" -o refcard.html
-```
-
-To use the input file `ns2_program.html` and dump only the program names,
-starting with page 1 at the top and page 20 at the bottom for each bank,
-with the title "Painted Black Stage 2," 
-into the output file `refcard.html`: 
-```
-python make_nord_refcard ns2_program.html -t "Painted Black Stage 2" -o refcard.html
-```
 
 ## Fonts
 Nord appears to use Eurostile Extended for the titles on the front panel,
@@ -74,8 +53,23 @@ Since most users do not have Eurostile installed, by default the script will use
 a stretched version of Helvetica or Arial for title and bank names.
 Use the `--eurostile` argument if you have Eurostile Extended ("Eurostyle Extd") installed.
 
-## sample
+## Examples
 
-Here's an image that shows an example for the Electro 4D:
+To use the input file `ne4d_program.html` and dump the programs,
+as well as the detailed sample and organ model,
+starting with page 32 at the top and page 1 at the bottom,
+with the title "Electro 4D,"
+into the output file `refcard.html` : 
+```
+python make_nord_refcard ne4d_program.html -v -r --eurostile -t "Electro 4D" -o refcard.html
+```
+![](ne4_example.png?raw=true)
 
-![](ne4d_program_example.png?raw=true)
+To use the input file `ns2_program.html` and dump only the program names,
+starting with page 1 at the top and page 20 at the bottom for each bank,
+with the title "Nord Stage 2," 
+into the output file `refcard.html`: 
+```
+python make_nord_refcard ns2_program.html --eurostile -t "Nord Stage 2" -o refcard.html
+```
+![](ns2_example.png?raw=true)

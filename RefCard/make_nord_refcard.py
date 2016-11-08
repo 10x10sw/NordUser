@@ -36,14 +36,14 @@ import argparse
 from xml.etree import ElementTree
 
 parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards.')
-parser.add_argument('-v', '--verbose', action='store_const', const=1, default=0, help='print the sample name or organ model below the program name')
-parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
-parser.add_argument('inputFile', type=str, help='the input Nord Electro 4 Program HTML file')
 parser.add_argument('-o', '--outputFile', type=str, help='the output HTML file')
+parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
 parser.add_argument('-t', '--title', type=str, help='an optional title to print above each bank')
+parser.add_argument('-v', '--verbose', action='store_const', const=1, default=0, help='print the sample name or organ model below the program name')
+parser.add_argument('inputFile', type=str, help='the input Nord Sound Manager Program HTML file')
 parser.add_argument('--eurostile', action='store_const', const=1, default=0, help='use Eurostile Extd font for titles and banks')
 args = parser.parse_args()
-# print args
+# print(args)
 
 xml = ''
 
@@ -118,11 +118,14 @@ def findValues(table, bankName, location):
 
 #for row in rows:
 #    values = [col.text for col in row]
-#    print dict(zip(headers, values))
+#    print(dict(zip(headers, values)))
 
 # build new html
 html = '<html>\n'
-html += '<head><style>\n\
+html += '<head>\n'
+if args.title:
+    html += '<title>' + args.title + '</title>'
+html += '<style>\n\
 body, table {font:normal 6pt Trebuchet, Trebuchet MS, Helvetica Neue, Helvetica, Arial, sans-serif;}\n\
 .bank {padding:6pt; background:black; overflow:hidden; border:1pt solid gray; -webkit-border-radius:10pt; -moz-border-radius:10pt; border-radius:10pt;}\n\
 h1,h2 {text-align:center; text-transform:uppercase;}\n\
@@ -130,7 +133,7 @@ h2 {color:white;}\n\
 .programs {background:white; border:1pt solid gray; -webkit-border-radius:5pt; -moz-border-radius:5pt; border-radius:5pt;}\n\
 .name {font-weight:bold; font-size: 140%; display:inline;}\n\
 .catsamp {display:inline;}\n\
-.break {page-break-before:always; background:white; xpadding:10pt;}\n\
+.break {page-break-before:always; background:white; }\n\
 table {border-collapse:collapse; width:100%;}\n\
 table tbody td {color:black; border-bottom:1pt solid lightgray;}\n'
 html += 'table tbody td.location {{font-size:120%; font-weight:bold; padding:2pt; text-align:center; border-left:1pt solid lightgray; width:{}%;}}\n'.format(20/numPrograms)
@@ -138,8 +141,7 @@ html += 'table tbody td.info {{padding:2pt; width:{}%;}}\n'.format(80/numProgram
 html += 'table tbody td:first-child {border-left:none;}\n\
 table tbody tr:last-child td {border-bottom:none;}\n'
 if args.eurostile:
-    html += 'h1,h2 {font:bold 14pt Eurostile Extd, Helvetica Neue, Helvetica, Arial, sans-serif; margin:0}'
-    html += '.location {font-family:Eurostile}'
+    html += 'h1,h2 {font:bold 14pt Eurostile Extd, Helvetica Neue, Helvetica, Arial, sans-serif; margin:0;}\n'
 else: 
     html += 'h1,h2 {font:bold 12pt Helvetica Neue, Helvetica, Arial, sans-serif; margin:0pt 0pt 6pt 0pt; -webkit-transform:scale(2,1); -moz-transform:scale(2,1); -ms-transform:scale(2,1); transform:scale(2,1);}\n'
 
@@ -211,6 +213,6 @@ if args.outputFile:
     outHtmlFile = open(args.outputFile, 'w')
     outHtmlFile.write(html)
 else:
-    print html
+    print(html)
 
 # This was my first Python script. Thanks for watching!
