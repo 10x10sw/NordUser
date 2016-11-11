@@ -79,10 +79,46 @@ if i & 0x0a:
 else:
     vibState = 'Off'
 
+# 0x3c-0x3f: drawbars 1-8, 2 drawbars per byte, values 0-8
+# 0x40: drawbar 9 in high byte
+i = ord(d[0x3c])
+drawbar1 = i >> 4
+drawbar2 = i & 0xf
+i = ord(d[0x3d])
+drawbar3 = i >> 4
+drawbar4 = i & 0xf
+i = ord(d[0x3e])
+drawbar5 = i >> 4
+drawbar6 = i & 0xf
+i = ord(d[0x3f])
+drawbar7 = i >> 4
+drawbar8 = i & 0xf
+i = ord(d[0x40])
+drawbar9 = i >> 4
+
 # 0x40: vibrato/chorus on (b3) 0x00=off 0x01=v1 0x03=c1 0x05=v2
+i = ord(d[0x40]) >> 1
+i = i & 0x7
+print(i)
+vibType = ''
+if i==0:
+    vibType = 'V1'
+if i==1:
+    vibType = 'C1'
+if i==2:
+    vibType = 'V2'
+if i==3:
+    vibType = 'C2'
+if i==4:
+    vibType = 'V3'
+if i==5:
+    vibType = 'C3'
 
 if organ:
-    print 'Organ: {}  Vibrato/Chorus: {} '.format(organ,vibState)
+    print 'Organ: {}  Vibrato/Chorus: {}  Type:{}  Drawbars: {}{}{}{}{}{}{}{}{}'.format(organ,vibState,vibType,\
+                                                                               drawbar1,drawbar2,drawbar3,\
+                                                                               drawbar4,drawbar5,drawbar6,\
+                                                                               drawbar7,drawbar8,drawbar9)
 
 
 # EFFECTS
