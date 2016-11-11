@@ -22,13 +22,13 @@ The Nord software will create one or more files. This script uses the "Program" 
 ## Help
 Here is the output of `python dump_ne4p.py -h` :
 ```
-usage: dump_ne4p.py [-h] inputFile
+usage: dump_ne4p.py [-h] inputFile [inputFile ...]
 
 Dumps the program settings contained in Nord Electro 4 .ne4p files.
 
 positional arguments:
-inputFile   the input Nord Sound Manager ne4p file
+  inputFile   input Nord Sound Manager ne4p file(s)
 
 optional arguments:
--h, --help  show this help message and exit  
+  -h, --help  show this help message and exit
 ```
