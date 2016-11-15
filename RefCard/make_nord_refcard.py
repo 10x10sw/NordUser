@@ -26,16 +26,17 @@
 # This script will convert the program list for 
 #       Nord Electro 4
 #       Nord Stage 2/2EX 
+#       Nord Lead A1 (programs and performances)
 # as exported from 
 # Nord Sound Manager 6.86 build 734_12 [OSX Intel]
 # into a grid-style bank and program table.
 #
 
-import sys
 import argparse
+import sys
 from xml.etree import ElementTree
 
-parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards.')
+parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards. This version of the script supports at minimum the following models: Nord Stage 2, Nord Lead A1, Nord Electro 4.')
 parser.add_argument('-o', '--outputFile', type=str, help='the output HTML file')
 parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
 parser.add_argument('-t', '--title', type=str, help='an optional title to print above each bank')
@@ -89,6 +90,9 @@ if numCols == 8:
     numPages = 32
     numBanks = 1
     numPrograms = 4
+    numColumns = 4
+    hasNumberedBanks = False
+    verboseValues = {6}
 
 # ----- Stage 2 -----
 # 2 banks with 20 pages of 5 programs
@@ -105,8 +109,32 @@ if numCols == 11:
     numPages = 20
     numBanks = 4
     numPrograms = 5
+    numColumns = 5
+    hasNumberedBanks = False
+    verboseValues = {6,7,8,9}
 
-# function to values based on bank and location
+# ----- Lead A1 -----
+# 4 banks of 50 performances or 8 banks of 50 programs
+# table data:7 columns 
+# 1:bank A-D or 1-8
+# 2:location (program)
+# 3:name
+# 4:category
+if numCols == 7:
+    numPages = 1
+    numPrograms = 50
+    numColumns = 5
+    verboseValues = {4}
+    hasNumberedBanks = bool(html.find('Bank 1') != -1)
+    if hasNumberedBanks:
+        numBanks = 8
+    else:
+        numBanks = 4
+    # this is a guess for NL4, NL2X
+    if html.find('<td>51</td>') != -1:
+        numPrograms = 100
+
+# function to find values based on bank and location
 def findValues(table, bankName, location):
     rows = iter(table)
     for row in rows:
@@ -115,10 +143,6 @@ def findValues(table, bankName, location):
             if value == location:
                 if values[1] == bankName:
                     return values;
-
-#for row in rows:
-#    values = [col.text for col in row]
-#    print(dict(zip(headers, values)))
 
 # build new html
 html = '<html>\n'
@@ -133,20 +157,18 @@ h2 {color:white;}\n\
 .programs {background:white; border:1pt solid gray; -webkit-border-radius:5pt; -moz-border-radius:5pt; border-radius:5pt;}\n\
 .name {font-weight:bold; font-size: 140%; display:inline;}\n\
 .catsamp {display:inline;}\n\
-.break {page-break-before:always; background:white; }\n\
+.break {page-break-before:always; background:white; margin-bottom:10pt;}\n\
 table {border-collapse:collapse; width:100%;}\n\
 table tbody td {color:black; border-bottom:1pt solid lightgray;}\n'
-html += 'table tbody td.location {{font-size:120%; font-weight:bold; padding:2pt; text-align:center; border-left:1pt solid lightgray; width:{}%;}}\n'.format(20/numPrograms)
-html += 'table tbody td.info {{padding:2pt; width:{}%;}}\n'.format(80/numPrograms)
+html += 'table tbody td.location {{font-size:120%; font-weight:bold; padding:2pt; text-align:center; border-left:1pt solid lightgray; width:{}%;}}\n'.format(20/numColumns)
+html += 'table tbody td.info {{padding:2pt; width:{}%;}}\n'.format(80/numColumns)
 html += 'table tbody td:first-child {border-left:none;}\n\
 table tbody tr:last-child td {border-bottom:none;}\n'
 if args.eurostile:
     html += 'h1,h2 {font:bold 14pt Eurostile Extd, Helvetica Neue, Helvetica, Arial, sans-serif; margin:0;}\n'
 else: 
     html += 'h1,h2 {font:bold 12pt Helvetica Neue, Helvetica, Arial, sans-serif; margin:0pt 0pt 6pt 0pt; -webkit-transform:scale(2,1); -moz-transform:scale(2,1); -ms-transform:scale(2,1); transform:scale(2,1);}\n'
-
 html += '</style></head>\n'
-
 html += '<body>\n'
 
 for bank in range(0,numBanks):
@@ -157,7 +179,10 @@ for bank in range(0,numBanks):
     html += '<div class="bank">'
 
     if numBanks>1:
-        bankName = 'Bank {:X}'.format(0xA+bank)
+        if hasNumberedBanks:
+            bankName = 'Bank {:X}'.format(bank+1)
+        else:
+            bankName = 'Bank {:X}'.format(0xA+bank)
         html += '<h2>' + bankName + '</h2>\n'
     else:
         bankName = 'Program'
@@ -172,7 +197,10 @@ for bank in range(0,numBanks):
 
         html += '<tr>'
         for program in range(1,numPrograms+1):
-            location = '{:02d}:{}'.format(page,program)
+            if numPages>1:
+                location = '{:02d}:{}'.format(page,program)
+            else:
+                location = '{}'.format(program)
 
             name = ''
             samp = ''
@@ -182,22 +210,26 @@ for bank in range(0,numBanks):
 
             if values:
                 name = values[3]
-                cat = values[4]
-                if numCols == 8:# Electro 4
-                    samp = values[6]
-                if numCols == 11:# Stage 2
-                    samp = values[6] + '<br>' + values[7] + '<br>' + values[8] + '<br>' + values[9] 
 
             html += '<td class="location">' + location + '</td><td class="info"><div class="name">' + name
 
-            # for organs, show the model. otherwise, show the sample name
-            if args.verbose:
+            # for organs, show the model. otherwise, show the sample name, or category or something
+            if args.verbose and values:
+                cat = values[4]
                 if cat == 'B3' or cat == 'Farf' or cat == 'Vx':
                     html += '</div><br><div class="catsamp">' + cat + '</div></td>'
                 else:
-                    html += '</div><br><div class="catsamp">' + samp + '</div></td>'
+                    html += '</div><br><div class="catsamp">' # + samp + '</div></td>'
+                    for v in verboseValues:
+                        html += values[v]
+                        if len(verboseValues)>1:
+                            html += '<br>'
+                    html += '</div></td>'
 
             html += '</div></td>'
+
+            if numPages==1 and (program % numColumns) == 0:
+                html += '</tr>\n'
 
         html += '</tr>\n'
 

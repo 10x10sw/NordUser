@@ -5,7 +5,7 @@ This Python script creates a program list "reference card" for Nord keyboards by
 HTML Program List output from the Nord Sound Manager program.
 The reference card is a grid based on page and program. 
 For keyboards with more than one bank of sounds, a separate grid is produced for each bank. 
-It works for the Electro 4 and Stage 2 keyboards, at least.
+It works for the Electro 4, Stage 2, and Lead A1 keyboards, at least.
 This has been tested with the output of Nord Sound Manager 6.86 build 734_12 [OSX Intel].
 
 ## Why This Script
@@ -63,7 +63,7 @@ into the output file `refcard.html` :
 ```
 python make_nord_refcard ne4d_program.html -v -r --eurostile -t "Electro 4D" -o refcard.html
 ```
-![](ne4_example.png?raw=true)
+![](samples/ne4_example.png?raw=true)
 
 To use the input file `ns2_program.html` and dump only the program names,
 starting with page 1 at the top and page 20 at the bottom for each bank,
@@ -72,4 +72,4 @@ into the output file `refcard.html`:
 ```
 python make_nord_refcard ns2_program.html --eurostile -t "Nord Stage 2" -o refcard.html
 ```
-![](ns2_example.png?raw=true)
+![](samples/ns2_example.png?raw=true)
