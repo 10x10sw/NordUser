@@ -33,15 +33,13 @@ import argparse
 import struct
 import sys
 
-parser = argparse.ArgumentParser(description='Dumps the program settings contained in Nord Electro 4 .ne4p files.')
-parser.add_argument('inputFile', type=argparse.FileType('rb'), nargs='+', help='input Nord Sound Manager ne4p file(s)')
-args = parser.parse_args()
-# print(args)
-
-# function to convert 0x00 -> 0x3f to -15 -> +15
+# converts 0x00 -> 0x3f to -15.0 -> +15.0
 def dbFromSevenBitValue(i):
     return int((i - 0x3f) * 15.0 / 0x3f)
 
+#  pulls 7 bits out of two bytes, e.g. those with an x here:
+# - - - -  - x x x  x x x x  - - - -
+# offset is the number of unused bits in c1 (in this sample, offset is 5)
 def sevenBitValueFromChars(c1,c2,offset):
     mask = 1
     for m in range(0,7-offset):
@@ -52,11 +50,12 @@ def sevenBitValueFromChars(c1,c2,offset):
     sbv = ((msb << (offset-1)) + lsb)
     return sbv
 
-
+# creates a string with the program information
 def dumpNE4P(d):
 
+    # dump is the output string
     dump = ''
-    
+
     ######## ORGAN ########
 
     # model
@@ -206,10 +205,7 @@ def dumpNE4P(d):
     eqBassGain = dbFromSevenBitValue(i)
 
     # 0x5f, 0x60: EQ Mid Freq 0=200 40=1000 7f=8K
-    # - - - -  - - - x  x x x x  x x - -
-    #msb = ord(d[0x5f]) & 0x1
-    #lsb = ord(d[0x60]) >> 2
-    #i = ((msb << 6) + lsb)
+    # this linear scale might not be right
     i = sevenBitValueFromChars(d[0x5d],d[0x60],7)
     if i<0x40:
         f = 800.0 * i / 0x3f
@@ -218,32 +214,19 @@ def dumpNE4P(d):
         i -= 0x40
         f = 7000.0 * i / 0x3f
         f += 1000
-    # print '{} {}'.format(i,f)
     eqMidFreq = int(round(f / 10) * 10)
 
     # 0x60, 0x61: EQ Mid Gain
-    # - - - -  - - x x  x x x x  x - - -
-    #msb = ord(d[0x60]) & 0x3
-    #lsb = ord(d[0x61]) >> 3
-    #i = ((msb << 5) + lsb)
     i = sevenBitValueFromChars(d[0x60],d[0x61],6)
     eqMidGain = dbFromSevenBitValue(i)
 
     # 0x61, 0x62: EQ Treble Gain (7 bits)
-    # - - - -  - x x x  x x x x  - - - -
-    #msb = ord(d[0x61]) & 0x7
-    #lsb = ord(d[0x62]) >> 4
-    #i = ((msb << 4) + lsb)
     i = sevenBitValueFromChars(d[0x61],d[0x62],5)
     eqTrebleGain = dbFromSevenBitValue(i)
 
     dump += 'EQ: {}  Bass:{:+} dB  Mid:{:+} dB ({} Hz)  Treble:{:+} dB\n'.format(eqState,eqBassGain,eqMidGain,eqMidFreq,eqTrebleGain)
 
     # 0x67, 0x68: Program Gain (7 bits)
-    # - - - -  - - x x  x x x x  x - - -
-    #msb = ord(d[0x67]) & 0x3
-    #lsb = ord(d[0x68]) >> 3
-    #i = ((msb << 5) + lsb) << 1
     i = sevenBitValueFromChars(d[0x67],d[0x68],6)
     programGain = 10. * i / 0x7e
     dump += 'Program Gain: {}\n'.format(round(programGain,1))
@@ -298,15 +281,18 @@ def dumpNE4P(d):
 
     return dump
 
+
+# main
+
+parser = argparse.ArgumentParser(description='Dumps the program settings contained in Nord Electro 4 .ne4p files.')
+parser.add_argument('inputFile', type=argparse.FileType('rb'), nargs='+', help='input Nord Sound Manager ne4p file(s)') # read binary files
+args = parser.parse_args()
+
 for f in args.inputFile:
-
-    # read the input binary
     d = f.read()
-
     if d[:4] != 'CBIN' and d[9:13] != 'ne4p':
         print 'This does not appear to be a Nord NE4P file'
         continue
     else:
         print(f.name)
         print(dumpNE4P(d))
-
