@@ -64,57 +64,133 @@ def dumpNE4P(d):
     organ = ''
     if i==0x12:
         organ = 'B3'
+        vibType = ''
+
+        # 0x49: bit 4: vib/chorus ON
+        i = ord(d[0x49])
+        if i & 0x0a:
+            vibState = 'On'
+            # 0x40: vibrato/chorus on (b3) 0x00=off 0x01=v1 0x03=c1 0x05=v2
+            i = ord(d[0x40]) >> 1
+            i = i & 0x7
+            if i==0:
+                vibType = 'V1'
+            if i==1:
+                vibType = 'C1'
+            if i==2:
+                vibType = 'V2'
+            if i==3:
+                vibType = 'C2'
+            if i==4:
+                vibType = 'V3'
+            if i==5:
+                vibType = 'C3'
+        else:
+            vibState = 'Off'
+
+        # 0x3c-0x3f: drawbars 1-8, 2 drawbars per byte, values 0-8
+        # 0x40: drawbar 9 in high byte
+        i = ord(d[0x3c])
+        drawbar1 = i >> 4
+        drawbar2 = i & 0xf
+        i = ord(d[0x3d])
+        drawbar3 = i >> 4
+        drawbar4 = i & 0xf
+        i = ord(d[0x3e])
+        drawbar5 = i >> 4
+        drawbar6 = i & 0xf
+        i = ord(d[0x3f])
+        drawbar7 = i >> 4
+        drawbar8 = i & 0xf
+        i = ord(d[0x40])
+        drawbar9 = i >> 4
+
+        dump += 'Organ: {}  Vibrato/Chorus: {}  Type:{}  Drawbars: {}{}{}{}{}{}{}{}{}\n'.format(organ,vibState,vibType,\
+            drawbar1,drawbar2,drawbar3,\
+            drawbar4,drawbar5,drawbar6,\
+            drawbar7,drawbar8,drawbar9)
+
     if i==0x13:
         organ = 'Farf'
+        vibType = ''
+
+        # 0x4d: bit 4: vib/chorus ON
+        i = ord(d[0x4d])
+        if i & 0x10:
+            vibState = 'On'
+            # 0x4d: vibrato/chorus on (farf) 0x10=v1 0x30=c1 0x50=v2 0x70=c2
+            i = ord(d[0x4d])
+            if i & 0x10 == 0x10:
+                vibType = 'V1'
+            if i & 0x30 == 0x30:
+                vibType = 'C1'
+            if i & 0x50 == 0x50:
+                vibType = 'V2'
+            if i & 0x70 == 0x70:
+                vibType = 'C2'
+        else:
+            vibState = 'Off'
+
+        # 0x4c: 1 bit per drawbar 1-8
+        # 0x4d: drawbar 9 in high bit
+        drawbar1 = drawbar2 = drawbar3 = drawbar4 = drawbar5 = drawbar6 = drawbar7 = drawbar8 = drawbar9 = 0
+        i = ord(d[0x4c])
+        if i & 0x80:
+            drawbar1 = 1
+        if i & 0x40:
+            drawbar2 = 1
+        if i & 0x20:
+            drawbar3 = 1
+        if i & 0x10:
+            drawbar4 = 1
+        if i & 0x8:
+            drawbar5 = 1
+        if i & 0x4:
+            drawbar6 = 1
+        if i & 0x2:
+            drawbar7 = 1
+        if i & 0x1:
+            drawbar8 = 1
+        i = ord(d[0x4d])
+        if i & 0x80:
+            drawbar9 = 1
+
+        dump += 'Organ: {}  Vibrato/Chorus: {}  Type:{}  Drawbars: {}{}{}{}{}{}{}{}{}\n'.format(organ,vibState,vibType,\
+            drawbar1,drawbar2,drawbar3,\
+            drawbar4,drawbar5,drawbar6,\
+            drawbar7,drawbar8,drawbar9)
+
     if i==0x14:
         organ = 'Vox'
 
-    # 0x49: bit 4: vib/chorus ON
-    i = ord(d[0x49])
-    if i & 0x0a:
-        vibState = 'On'
-    else:
-        vibState = 'Off'
+        # 0x49: bit 4: vib/chorus ON
+        i = ord(d[0x49])
+        if i & 0x0a == 0x0a:
+            vibState = 'On'
+        else:
+            vibState = 'Off'
 
-    # 0x3c-0x3f: drawbars 1-8, 2 drawbars per byte, values 0-8
-    # 0x40: drawbar 9 in high byte
-    i = ord(d[0x3c])
-    drawbar1 = i >> 4
-    drawbar2 = i & 0xf
-    i = ord(d[0x3d])
-    drawbar3 = i >> 4
-    drawbar4 = i & 0xf
-    i = ord(d[0x3e])
-    drawbar5 = i >> 4
-    drawbar6 = i & 0xf
-    i = ord(d[0x3f])
-    drawbar7 = i >> 4
-    drawbar8 = i & 0xf
-    i = ord(d[0x40])
-    drawbar9 = i >> 4
+        # 0x45-0x49: drawbars 1-9, 2 drawbars per byte, values 0-8
+        # 0x49: drawbar 9 in high byte
+        i = ord(d[0x45])
+        drawbar1 = i >> 4
+        drawbar2 = i & 0xf
+        i = ord(d[0x46])
+        drawbar3 = i >> 4
+        drawbar4 = i & 0xf
+        i = ord(d[0x47])
+        drawbar5 = i >> 4
+        drawbar6 = i & 0xf
+        i = ord(d[0x48])
+        drawbar7 = i >> 4
+        drawbar8 = i & 0xf
+        i = ord(d[0x49])
+        drawbar9 = i >> 4
 
-    # 0x40: vibrato/chorus on (b3) 0x00=off 0x01=v1 0x03=c1 0x05=v2
-    i = ord(d[0x40]) >> 1
-    i = i & 0x7
-    vibType = ''
-    if i==0:
-        vibType = 'V1'
-    if i==1:
-        vibType = 'C1'
-    if i==2:
-        vibType = 'V2'
-    if i==3:
-        vibType = 'C2'
-    if i==4:
-        vibType = 'V3'
-    if i==5:
-        vibType = 'C3'
-
-    if organ:
-        dump += 'Organ: {}  Vibrato/Chorus: {}  Type:{}  Drawbars: {}{}{}{}{}{}{}{}{}\n'.format(organ,vibState,vibType,\
-                                                                                   drawbar1,drawbar2,drawbar3,\
-                                                                                   drawbar4,drawbar5,drawbar6,\
-                                                                                   drawbar7,drawbar8,drawbar9)
+        dump += 'Organ: {}  Vibrato/Chorus: {}  Drawbars: {}{}{}{}{}{}{}{}{}\n'.format(organ,vibState,\
+            drawbar1,drawbar2,drawbar3,\
+            drawbar4,drawbar5,drawbar6,\
+            drawbar7,drawbar8,drawbar9)
 
     ######## EFFECTS ########
 
