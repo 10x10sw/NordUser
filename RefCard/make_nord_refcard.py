@@ -84,8 +84,11 @@ numCols = len(next(rows))
 # headers = [col.text for col in next(rows)]
 
 # Electro 4 & Stage write location as "page:format" (01:1, 01:2, 02:1, 02:2...)
-locationFormat = '{:02d}:{}'
 # but Electro 6 skips the colon: "pageformat" (11, 12, 21, 22 ...)
+locationFormat = '{:02d}:{}'
+bankColumn = 1
+locationColumn = 2
+nameColumn = 3
 
 # ----- Electro 4 -----
 # 32 pages of 4 programs
@@ -93,6 +96,7 @@ locationFormat = '{:02d}:{}'
 # 2:location (page:program)
 # 3:name
 # 4:category
+# 5:version
 # 6:sample
 if numCols == 8:
     numPages = 32
@@ -105,10 +109,11 @@ if numCols == 8:
 # ----- Electro 6 -----
 # 26 banks of 16 programs
 # table data: 9 columns 
-# 2:bank
-# 3:location (pageprogram)
-# 4:name
-# 5:category
+# 1:bank
+# 2:location (pageprogram)
+# 3:name
+# 4:category
+# 5:version
 # 6:piano
 # 7:sample
 if numCols == 9:
@@ -127,6 +132,7 @@ if numCols == 9:
 # 2:location (page:program)
 # 3:name
 # 4:category
+# 5:version
 # 6:piano A
 # 7:sample A
 # 8:piano B
@@ -146,6 +152,7 @@ if numCols == 11:
 # 2:location (program)
 # 3:name
 # 4:category
+# 5:version
 if numCols == 7:
     numPages = 1
     numPrograms = 50
@@ -168,20 +175,15 @@ if args.rotate and numPages>1:
 def findValues(table, bankName, location):
     rows = iter(table)
     for row in rows:
-        values = [col.text for col in row]
-        for value in values:
-            if value == location:
-                if values[1] == bankName:
-                    return values
+        if row[locationColumn].text == location and row[bankColumn].text == bankName:
+            return [col.text for col in row]
 
 # function to see if there are any values for this bank
 def isBankEmpty(table, bankName):
     rows = iter(table)
     for row in rows:
-        values = [col.text for col in row]
-        for value in values:
-            if values[1] == bankName:
-                return False
+        if row[bankColumn].text == bankName:
+            return False
     return True
 
 # build new html
@@ -258,7 +260,7 @@ for bank in range(0,numBanks):
             values = findValues(table,bankName,location)
 
             if values:
-                name = values[3]
+                name = values[nameColumn]
 
             html += '<td class="location">' + location + '</td><td class="info"><div class="name">' + name
 
