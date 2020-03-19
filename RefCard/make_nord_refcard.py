@@ -1,7 +1,7 @@
 #
 # MIT License
 # 
-# Copyright (c) 2016 Christian-E! / Ten by Ten Software
+# Copyright (c) 2016-2020 Christian-E! / Ten by Ten Software
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 #
 # This script will convert the program list for 
+#       Nord Electro 6
 #       Nord Electro 4
 #       Nord Stage 2/2EX 
 #       Nord Lead A1 (programs and performances)
@@ -39,6 +40,7 @@ from xml.etree import ElementTree
 parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards. This version of the script supports at minimum the following models: Nord Stage 2, Nord Lead A1, Nord Electro 4.')
 parser.add_argument('-o', '--outputFile', type=str, help='the output HTML file')
 parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
+parser.add_argument('-R', '--rotate', action='store_const', const=1, default=0, help='rotate the program page rows and columns')
 parser.add_argument('-t', '--title', type=str, help='an optional title to print above each bank')
 parser.add_argument('-v', '--verbose', action='store_const', const=1, default=0, help='print the sample name or organ model below the program name')
 parser.add_argument('inputFile', type=str, help='the input Nord Sound Manager Program HTML file')
@@ -64,7 +66,7 @@ html = html.replace(' class=odd','')
 # fix the header lines; they end in </td> instead of </th>
 lfixth = html.rsplit('<th>')
 for line in lfixth:
-    tdIndex = line.find('</td>\n');
+    tdIndex = line.find('</td>')
     if tdIndex == -1:
         xml += line
     else:
@@ -75,13 +77,19 @@ for line in lfixth:
 
 # parse the table 
 table = ElementTree.XML(xml)
+
+# see how many columns are in each row of the table and use this to try to detect the Nord model
 rows = iter(table)
 numCols = len(next(rows))
 # headers = [col.text for col in next(rows)]
 
+# Electro 4 & Stage write location as "page:format" (01:1, 01:2, 02:1, 02:2...)
+locationFormat = '{:02d}:{}'
+# but Electro 6 skips the colon: "pageformat" (11, 12, 21, 22 ...)
+
 # ----- Electro 4 -----
 # 32 pages of 4 programs
-# table data:8 columns 
+# table data: 8 columns 
 # 2:location (page:program)
 # 3:name
 # 4:category
@@ -94,9 +102,27 @@ if numCols == 8:
     hasNumberedBanks = False
     verboseValues = {6}
 
+# ----- Electro 6 -----
+# 26 banks of 16 programs
+# table data: 9 columns 
+# 2:bank
+# 3:location (pageprogram)
+# 4:name
+# 5:category
+# 6:piano
+# 7:sample
+if numCols == 9:
+    numPages = 4
+    numBanks = 26
+    numPrograms = 4
+    numColumns = 4
+    hasNumberedBanks = False
+    verboseValues = {6,7}
+    locationFormat = '{}{}'
+
 # ----- Stage 2 -----
 # 2 banks with 20 pages of 5 programs
-# table data:11 columns
+# table data: 11 columns
 # 1:bank 
 # 2:location (page:program)
 # 3:name
@@ -115,7 +141,7 @@ if numCols == 11:
 
 # ----- Lead A1 -----
 # 4 banks of 50 performances or 8 banks of 50 programs
-# table data:7 columns 
+# table data: 7 columns 
 # 1:bank A-D or 1-8
 # 2:location (program)
 # 3:name
@@ -134,6 +160,10 @@ if numCols == 7:
     if html.find('<td>51</td>') != -1:
         numPrograms = 100
 
+# TODO refactor so Lead A1 can be rotated
+if args.rotate and numPages>1:
+    numPages,numPrograms = numPrograms,numPages
+
 # function to find values based on bank and location
 def findValues(table, bankName, location):
     rows = iter(table)
@@ -142,7 +172,17 @@ def findValues(table, bankName, location):
         for value in values:
             if value == location:
                 if values[1] == bankName:
-                    return values;
+                    return values
+
+# function to see if there are any values for this bank
+def isBankEmpty(table, bankName):
+    rows = iter(table)
+    for row in rows:
+        values = [col.text for col in row]
+        for value in values:
+            if values[1] == bankName:
+                return False
+    return True
 
 # build new html
 html = '<html>\n'
@@ -173,19 +213,25 @@ html += '<body>\n'
 
 for bank in range(0,numBanks):
 
-    if args.title:
-        html += '<h1>' + args.title + '</h1>\n';
-
-    html += '<div class="bank">'
-
     if numBanks>1:
         if hasNumberedBanks:
             bankName = 'Bank {:X}'.format(bank+1)
         else:
-            bankName = 'Bank {:X}'.format(0xA+bank)
-        html += '<h2>' + bankName + '</h2>\n'
+            bankName = 'Bank {:c}'.format(bank+0x41) # 0x41 is 'A'
     else:
         bankName = 'Program'
+
+    # save space if this bank is empty
+    if isBankEmpty(table,bankName):
+        continue
+
+    if args.title:
+        html += '<h1>' + args.title + '</h1>\n'
+
+    html += '<div class="bank">'
+
+    if numBanks>1:
+        html += '<h2>' + bankName + '</h2>\n'
 
     html += '<div class="programs"><table>\n'
 
@@ -198,7 +244,10 @@ for bank in range(0,numBanks):
         html += '<tr>'
         for program in range(1,numPrograms+1):
             if numPages>1:
-                location = '{:02d}:{}'.format(page,program)
+                if args.rotate:
+                    location = locationFormat.format(program,page)
+                else:
+                    location = locationFormat.format(page,program)
             else:
                 location = '{}'.format(program)
 
