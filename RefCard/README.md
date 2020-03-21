@@ -1,5 +1,7 @@
 # NordUser RefCard
 
+![](samples/ns3_example.png?raw=true)
+
 ## What This Script Does
 This Python script creates a program list "reference card" for Nord keyboards by transforming the
 HTML Program List output from the Nord Sound Manager program.
