@@ -24,9 +24,8 @@
 
 #
 # This script will convert the program list for 
-#       Nord Electro 6
-#       Nord Electro 4
-#       Nord Stage 2/2EX 
+#       Nord Electro 4, 6
+#       Nord Stage 2, 2EX, 3
 #       Nord Lead A1 (programs and performances)
 # as exported from 
 # Nord Sound Manager 6.86 build 734_12 [OSX Intel]
@@ -37,7 +36,7 @@ import argparse
 import sys
 from xml.etree import ElementTree
 
-parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards. This version of the script supports at minimum the following models: Electro 6, Electro 4, Lead A1, Stage 2.')
+parser = argparse.ArgumentParser(description='Creates a Program Reference Card for Nord Keyboards. This version of the script supports at minimum the following models: Electro 4, 6; Lead A1; Stage 2, 2EX, 3.')
 parser.add_argument('-o', '--outputFile', type=str, help='the output HTML file')
 parser.add_argument('-r', '--reverse', action='store_const', const=1, default=0, help='print the program pages in reverse order (from high to low)')
 parser.add_argument('-R', '--rotate', action='store_const', const=1, default=0, help='rotate the program page rows and columns')
@@ -62,6 +61,8 @@ html = html[tableBegin:tableEnd+8]
 
 # remove unquoted styling
 html = html.replace(' class=odd','')
+# escape ampersands (assuming there are no escaped ones already)
+html = html.replace('&','&amp;')
 
 # fix the header lines; they end in </td> instead of </th>
 lfixth = html.rsplit('<th>')
@@ -83,8 +84,8 @@ rows = iter(table)
 numCols = len(next(rows))
 # headers = [col.text for col in next(rows)]
 
-# Electro 4 & Stage write location as "page:format" (01:1, 01:2, 02:1, 02:2...)
-# but Electro 6 skips the colon: "pageformat" (11, 12, 21, 22 ...)
+# Electro 4 & Stage write location as "page:program" (01:1, 01:2, 02:1, 02:2...)
+# but Electro 6 & Stage 3 skip the colon: "pageprogram" (11, 12, 21, 22 ...)
 locationFormat = '{:02d}:{}'
 bankColumn = 1
 locationColumn = 2
@@ -144,6 +145,12 @@ if numCols == 11:
     numColumns = 5
     hasNumberedBanks = False
     verboseValues = {6,7,8,9}
+# ----- Stage 3 -----
+    # detect location as "pageprogram" (11, 12, 21, 22 ...) in the first entry
+    if table[1][locationColumn].text.find(':') == -1:
+        numPages = 5
+        numBanks = 26
+        locationFormat = '{}{}'
 
 # ----- Lead A1 -----
 # 4 banks of 50 performances or 8 banks of 50 programs

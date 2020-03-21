@@ -5,14 +5,14 @@ This Python script creates a program list "reference card" for Nord keyboards by
 HTML Program List output from the Nord Sound Manager program.
 The reference card is a grid based on page and program. 
 For keyboards with more than one bank of sounds, a separate grid is produced for each bank. 
-It works for the Electro 6, Electro 4, Stage 2, and Lead A1 keyboards, at least.
+It works for the Electro 4, 6; Lead A1; Stage 2, 2EX, 3; and may work for other models as well.
 This has been tested with the output of Nord Sound Manager 6.86 build 734_12 [OSX Intel].
 
 ## Why This Script
 Some Nord keyboards have only a small multi-digit LED display; you cannot see the name of the program.
 Nord Sound Manager will export a list of the program names, but it is a linear list and contains a lot of useless information. 
-This list is not useful when you want to quickly find a preset sound based on its page and program location. 
-This script changes the list into a two-dimensional table (or tables) based on page and program. 
+This list is not useful when you want to quickly find a preset sound based on its page and program location, nor is it attractive to look at. 
+This script changes the list into a two-dimensional table (or tables) based on page and program, with a design that matches the look of the Nord keyboards. 
 
 ## What You Need
 
@@ -28,7 +28,8 @@ Here is the output of `python make_nord_refcard.py -h` :
 usage: make_nord_refcard.py [-h] [-o OUTPUTFILE] [-r] [-R] [-t TITLE] [-v] [--eurostile] inputFile
 
 Creates a Program Reference Card for Nord Keyboards.
-This version of the script supports at minimum the following models: Electro 6, Electro 4, Lead A1, Stage 2.
+This version of the script supports at minimum the following models:
+   Electro 4, 6; Lead A1; Stage 2, 2EX, 3.
 
 positional arguments:
   inputFile                   the input Nord Sound Manager Program HTML file
